@@ -1,0 +1,115 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+// ユーザー（会員）
+model Member {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  password  String
+  name      String
+  rank      String   @default("BRONZE") // BRONZE, SILVER, GOLD, PLATINUM, DIAMOND
+  balance   Int      @default(0) // 残高（最小通貨単位）
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // リレーション
+  gachaResults GachaResult[]
+  inventory    CardInventory[]
+
+  @@map("members")
+}
+
+// オリパ（商品パック）
+model Oripa {
+  id           String   @id @default(cuid())
+  title        String
+  description  String?
+  category     String   // "Pachimon" | "AsobiKing"
+  price        Int      // 1回あたりの価格（最小通貨単位）
+  totalSlots   Int      // 総口数
+  remainingSlots Int    // 残り口数
+  rewardRate   Float    // 還元率（パーセント）
+  isActive     Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  // リレーション
+  cards        Card[]
+  gachaResults GachaResult[]
+
+  @@map("oripas")
+}
+
+// カード（オリパに含まれるアイテム）
+model Card {
+  id          String   @id @default(cuid())
+  oripaId     String
+  name        String
+  prizeRank   String   // "S" | "A" | "B" | "C" | "D" | "E" | "MISS" | "GUARANTEED"
+  condition   String   @default("MINT") // "PSA10" | "PSA9_PLUS" | "MINT" | "GOOD" | "PLAY"
+  value       Int      // カード価値（最小通貨単位）
+  status      String   @default("AVAILABLE") // "AVAILABLE" | "ALLOCATED"
+  imageUrl    String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // リレーション
+  oripa       Oripa @relation(fields: [oripaId], references: [id], onDelete: Cascade)
+  gachaResultCards GachaResultCard[]
+  inventory   CardInventory[]
+
+  @@map("cards")
+}
+
+// ガチャ実行結果
+model GachaResult {
+  id        String   @id @default(cuid())
+  memberId  String
+  oripaId   String
+  gachaType String   // "SINGLE" | "TEN" | "HUNDRED"
+  totalCost Int      // 合計金額
+  createdAt DateTime @default(now())
+
+  // リレーション
+  member    Member @relation(fields: [memberId], references: [id])
+  oripa     Oripa  @relation(fields: [oripaId], references: [id])
+  cards     GachaResultCard[]
+
+  @@map("gacha_results")
+}
+
+// ガチャ結果とカードの中間テーブル
+model GachaResultCard {
+  id            String @id @default(cuid())
+  gachaResultId String
+  cardId        String
+
+  // リレーション
+  gachaResult   GachaResult @relation(fields: [gachaResultId], references: [id], onDelete: Cascade)
+  card          Card        @relation(fields: [cardId], references: [id])
+
+  @@unique([gachaResultId, cardId])
+  @@map("gacha_result_cards")
+}
+
+// ユーザーのカード所有状況
+model CardInventory {
+  id        String   @id @default(cuid())
+  memberId  String
+  cardId    String
+  quantity  Int      @default(1)
+  createdAt DateTime @default(now())
+
+  // リレーション
+  member    Member @relation(fields: [memberId], references: [id])
+  card      Card   @relation(fields: [cardId], references: [id])
+
+  @@unique([memberId, cardId])
+  @@map("card_inventory")
+}

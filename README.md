@@ -8,11 +8,9 @@
 - oven-sh/bun v1.2.20
 - microsoft/TypeScript v5.9.2
 - vercel/next.js v15.4.6 (with AppRouter)
-- PostgreSQL 17.6
+- tursodatabase/turso v0.1.3 (SQLite)
 - prisma/prisma v6.14.0 (with TypedSQL)
 - colinhacks/zod v4.0.17
-- vitejs/vite v7.1.2
-- rolldown/tsdown v0.14.1
 - biomejs/biome v2.2.0
 - tailwindlabs/tailwindcss v4.1.12
 - shadcn-ui/ui v2.10.0
