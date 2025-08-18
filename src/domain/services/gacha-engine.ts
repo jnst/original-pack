@@ -4,11 +4,18 @@ import type { Card } from "../models/card"
 import type { GachaResult, GachaResultId, GachaType } from "../models/gacha"
 import type { MemberId } from "../models/member"
 import type { OripaId } from "../models/oripa"
-import { type AllocationError, allocateCards, calculateAllocationCost } from "./allocation"
-import { executeGacha } from "./gacha"
+// Fisher-Yates shuffle algorithm for fair random selection
+const shuffleArray = <T>(array: readonly T[]): T[] => {
+  const shuffled = [...array]
+  for (let i = shuffled.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1))
+    ;[shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]]
+  }
+  return shuffled
+}
 
 export type GachaEngineError =
-  | AllocationError
+  | "GachaEngine.InsufficientCards"
   | "GachaEngine.InsufficientBalance"
   | "GachaEngine.OripaNotFound"
   | "GachaEngine.OripaInactive"
@@ -34,27 +41,24 @@ export const executeGachaEngine = (
   const { memberId, oripaId, gachaType, availableCards, memberBalance, pricePerUnit } = params
 
   if (availableCards.length === 0) {
-    return { ok: false, error: "Allocation.InsufficientCards" }
+    return { ok: false, error: "GachaEngine.InsufficientCards" }
   }
 
-  const shuffledCardIds = executeGacha(availableCards.map((card) => card.id))
-  if (!shuffledCardIds.ok) {
-    return { ok: false, error: "Allocation.InsufficientCards" }
+  const shuffledCards = shuffleArray(availableCards)
+  const drawCount = gachaType === "SINGLE" ? 1 : gachaType === "TEN" ? 10 : 100
+  
+  if (shuffledCards.length < drawCount) {
+    return { ok: false, error: "GachaEngine.InsufficientCards" }
   }
-
-  const allocation = allocateCards(shuffledCardIds.value, gachaType)
-  if (!allocation.ok) {
-    return { ok: false, error: allocation.error }
-  }
-
-  const totalCost = calculateAllocationCost(allocation.value, pricePerUnit)
+  
+  const selectedCards = shuffledCards.slice(0, drawCount)
+  const totalCost = pricePerUnit * drawCount
 
   if (memberBalance < totalCost) {
     return { ok: false, error: "GachaEngine.InsufficientBalance" }
   }
 
-  const allocatedCardIds = allocation.value.map((a) => a.cardId)
-  const allocatedCards = availableCards.filter((card) => allocatedCardIds.includes(card.id))
+  const allocatedCards = selectedCards
 
   const gachaResult: GachaResult = {
     id: uuidv4() as GachaResultId,

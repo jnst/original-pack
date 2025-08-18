@@ -93,14 +93,24 @@ export async function POST(request: NextRequest) {
         })),
       })
 
-      await tx.cardInventory.createMany({
-        data: allocatedCards.map((card) => ({
-          memberId: member.id,
-          cardId: card.id,
-          quantity: 1,
-        })),
-        skipDuplicates: true,
-      })
+      for (const card of allocatedCards) {
+        await tx.cardInventory.upsert({
+          where: {
+            memberId_cardId: {
+              memberId: member.id,
+              cardId: card.id,
+            },
+          },
+          create: {
+            memberId: member.id,
+            cardId: card.id,
+            quantity: 1,
+          },
+          update: {
+            quantity: { increment: 1 },
+          },
+        })
+      }
 
       await tx.oripa.update({
         where: { id: oripaId },
