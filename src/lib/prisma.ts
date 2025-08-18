@@ -1,15 +1,29 @@
 import { PrismaClient } from "@prisma/client"
+import path from "path"
 
-const globalForPrisma = globalThis as unknown as {
-  prisma: PrismaClient | undefined
+declare global {
+  var cachedPrisma: PrismaClient
 }
 
-export const prisma =
-  globalForPrisma.prisma ??
-  new PrismaClient({
-    log: ["query"],
-  })
-
-if (process.env.NODE_ENV !== "production") {
-  globalForPrisma.prisma = prisma
+// 動的パス解決でSQLiteファイルを指定
+const filePath = path.join(process.cwd(), 'prisma/dev.db')
+const config = {
+  datasources: {
+    db: {
+      url: 'file:' + filePath,
+    },
+  },
+  log: ["query" as const],
 }
+
+let prisma: PrismaClient
+if (process.env.NODE_ENV === "production") {
+  prisma = new PrismaClient(config)
+} else {
+  if (!global.cachedPrisma) {
+    global.cachedPrisma = new PrismaClient(config)
+  }
+  prisma = global.cachedPrisma
+}
+
+export { prisma }
