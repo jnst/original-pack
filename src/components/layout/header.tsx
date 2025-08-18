@@ -61,7 +61,7 @@ export function Header() {
             <div className="flex items-center gap-2">
               <span className="text-sm text-gray-600">残高:</span>
               <Badge variant="secondary" className="text-lg font-semibold">
-                ¥{member.balance.toLocaleString()}
+¥{member.balance.toLocaleString()}
               </Badge>
             </div>
 
