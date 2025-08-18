@@ -1,4 +1,4 @@
-import { Coin, Err, GachaId, Ok, Result } from "../core/types"
+import { Coin, GachaId, Result } from "../core/types"
 import { CardInventory } from "../models/card"
 import { createGachaResult, Gacha, GachaDrawCount } from "../models/gacha"
 import { Member, subtractCoin } from "../models/member"
@@ -45,12 +45,12 @@ export const createGachaService = (generateId: () => string): GachaService => ({
   draw: (member, oripa, drawCount, availableCards) => {
     // オリパが利用可能かチェック
     if (!isAvailable(oripa)) {
-      return Err("Gacha.OripaNotAvailable")
+      return { ok: false, error: "Gacha.OripaNotAvailable" }
     }
 
     // 在庫チェック
     if (availableCards.length < drawCount) {
-      return Err("Gacha.InsufficientStock")
+      return { ok: false, error: "Gacha.InsufficientStock" }
     }
 
     // 費用計算
@@ -59,13 +59,13 @@ export const createGachaService = (generateId: () => string): GachaService => ({
     // 残高チェック＆消費
     const memberResult = subtractCoin(member, totalCost)
     if (!memberResult.ok) {
-      return Err("Gacha.InsufficientBalance")
+      return { ok: false, error: "Gacha.InsufficientBalance" }
     }
 
     // カードをランダム選択
     const drawnCards = selectRandom(availableCards, drawCount)
     if (drawnCards.length === 0) {
-      return Err("Gacha.NoAvailableCards")
+      return { ok: false, error: "Gacha.NoAvailableCards" }
     }
 
     // ガチャ結果作成
@@ -81,10 +81,13 @@ export const createGachaService = (generateId: () => string): GachaService => ({
       cardInventoryIds
     )
 
-    return Ok({
-      gacha,
-      updatedMember: memberResult.value,
-      drawnCards,
-    })
+    return {
+      ok: true,
+      value: {
+        gacha,
+        updatedMember: memberResult.value,
+        drawnCards,
+      }
+    }
   },
 })

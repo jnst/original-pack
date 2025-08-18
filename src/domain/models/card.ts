@@ -1,5 +1,6 @@
 import { CardId, CardInventoryId, GachaId, MemberId, OripaId } from "../core/types"
 
+export type { CardId } from "../core/types"
 export type CardRarity = "S" | "A" | "B" | "C" | "D" | "E"
 
 export type Card = Readonly<{

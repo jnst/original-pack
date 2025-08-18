@@ -1,5 +1,6 @@
 import { Coin, OripaId } from "../core/types"
 
+export type { OripaId } from "../core/types"
 export type OripaCategory = "Pachimon" | "AsobiKing"
 
 export type Oripa = Readonly<{

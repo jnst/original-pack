@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
 import { z } from "zod"
+import type { CardId } from "../../../../domain/models/card"
 import type { GachaType } from "../../../../domain/models/gacha"
 import type { MemberId } from "../../../../domain/models/member"
 import type { OripaId } from "../../../../domain/models/oripa"
@@ -36,16 +37,10 @@ export async function POST(request: NextRequest) {
     }
 
     const domainCards = oripa.cards.map((card) => ({
-      id: card.id,
-      oripaId: card.oripaId as OripaId,
+      id: card.id as CardId,
       name: card.name,
-      prizeRank: card.prizeRank as "S" | "A" | "B" | "C" | "D" | "E" | "MISS" | "GUARANTEED",
-      condition: card.condition as "PSA10" | "PSA9_PLUS" | "MINT" | "GOOD" | "PLAY",
-      value: card.value,
-      status: card.status as "AVAILABLE" | "ALLOCATED",
-      imageUrl: card.imageUrl,
-      createdAt: card.createdAt,
-      updatedAt: card.updatedAt,
+      rarity: card.prizeRank as "S" | "A" | "B" | "C" | "D" | "E",
+      imageUrl: card.imageUrl || undefined,
     }))
 
     const result = executeGachaEngine({

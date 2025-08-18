@@ -1,9 +1,10 @@
 import { v4 as uuidv4 } from "uuid"
-import type { Result } from "../core/types"
+import type { Coin, Result } from "../core/types"
 import type { Card } from "../models/card"
 import type { GachaResult, GachaResultId, GachaType } from "../models/gacha"
 import type { MemberId } from "../models/member"
 import type { OripaId } from "../models/oripa"
+
 // Fisher-Yates shuffle algorithm for fair random selection
 const shuffleArray = <T>(array: readonly T[]): T[] => {
   const shuffled = [...array]
@@ -46,11 +47,11 @@ export const executeGachaEngine = (
 
   const shuffledCards = shuffleArray(availableCards)
   const drawCount = gachaType === "SINGLE" ? 1 : gachaType === "TEN" ? 10 : 100
-  
+
   if (shuffledCards.length < drawCount) {
     return { ok: false, error: "GachaEngine.InsufficientCards" }
   }
-  
+
   const selectedCards = shuffledCards.slice(0, drawCount)
   const totalCost = pricePerUnit * drawCount
 
@@ -65,7 +66,7 @@ export const executeGachaEngine = (
     memberId,
     oripaId,
     gachaType,
-    totalCost,
+    totalCost: totalCost as Coin,
     createdAt: new Date(),
   }
 

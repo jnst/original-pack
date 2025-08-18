@@ -1,5 +1,6 @@
 import { Coin, Err, MemberId, Ok, Point, Result } from "../core/types"
 
+export type { MemberId } from "../core/types"
 export type MemberRank = "BRONZE" | "SILVER" | "GOLD" | "PLATINUM" | "DIAMOND"
 
 export type Member = Readonly<{
@@ -30,12 +31,15 @@ export const subtractCoin = (
 ): Result<Member, "Member.InsufficientBalance"> => {
   const newBalance = member.coin - amount
   if (newBalance < 0) {
-    return Err("Member.InsufficientBalance")
+    return { ok: false, error: "Member.InsufficientBalance" }
   }
-  return Ok({
-    ...member,
-    coin: newBalance as Coin,
-  })
+  return {
+    ok: true,
+    value: {
+      ...member,
+      coin: newBalance as Coin,
+    }
+  }
 }
 
 // ランク判定（累計購入金額ベース）
