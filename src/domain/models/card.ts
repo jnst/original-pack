@@ -7,6 +7,7 @@ export type Card = Readonly<{
   readonly id: CardId
   readonly name: string
   readonly rarity: CardRarity
+  readonly value: number
   readonly imageUrl?: string
 }>
 

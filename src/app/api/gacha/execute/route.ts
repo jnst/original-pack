@@ -40,6 +40,7 @@ export async function POST(request: NextRequest) {
       id: card.id as CardId,
       name: card.name,
       rarity: card.prizeRank as "S" | "A" | "B" | "C" | "D" | "E",
+      value: card.value,
       imageUrl: card.imageUrl || undefined,
     }))
 
